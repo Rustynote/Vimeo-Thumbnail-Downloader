@@ -1,0 +1,41 @@
+//@import './carousel.css';
+
+// Your customize CSS
+.mw-800 {
+	max-width: 800px;
+	margin: 0 auto;
+}
+.fieldset {
+	position: relative;
+	box-shadow: 0 0 0 1px $white;
+	padding: 20px;
+	&:not(:first-child) {
+		margin-top: 30px;
+	}
+	.legend {
+		position: absolute;
+		display: inline-block;
+		padding: 0 5px;
+		left: 10px;
+		top: -4px;
+		transform: translate(0, -50%);
+		line-height: 1;
+		font-size: $h4-font-size;
+		pointer-events: none;
+		&:after {
+			content: '';
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			background: $body-bg;
+			left: 0;
+			top: 0;
+			z-index: -1;
+		}
+	}
+}
+.form-group {
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
