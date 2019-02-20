@@ -2,7 +2,6 @@ import 'bootstrap';
 
 import '../scss/index.scss';
 
-// require('file-loader?name=[name].[ext]!../script.php');
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
 
@@ -12,13 +11,10 @@ function toDataURL(url, callback) {
 	xhr.responseType = 'blob';
 	xhr.onload = function() {
 		var fr = new FileReader();
-
 		fr.onload = function() {
 			var base64 = this.result.split(',');
-
 			callback(base64[1]);
 		};
-
 		fr.readAsDataURL(xhr.response); // async call
 	};
 
@@ -35,7 +31,19 @@ function fileExtension(url) {
 	url = url.split('#')[0];
 
 	// Now we have only extension
+	url = url.substr(1+url.lastIndexOf('.'));
+
 	return url;
+}
+function addStatus(status) {
+	var div = $('.status'),
+		time = new Date(),
+		element = $('<div class="row" />');
+
+	element.append('<div class="col-md-2">'+time.getHours()+':'+time.getMinutes()+':'+time.getSeconds()+'</div>');
+	element.append('<div class="col-md-10">'+status+'</div>');
+
+	div.append(element);
 }
 
 var Vimeo = require('vimeo').Vimeo;
@@ -53,6 +61,9 @@ $('form').submit(e => {
 		client = new Vimeo(clientID, clientSecret, accessToken),
 		ratelimit = 25;
 
+	$('form').hide();
+	$('.status-parent').show();
+
 	if (videosRaw.indexOf(',') !== -1) {
 		videos = videosRaw.split(',');
 		videos = videos.map(Function.prototype.call, String.prototype.trim);
@@ -65,32 +76,73 @@ $('form').submit(e => {
 		});
 	}
 
-	// TODO: Move intervals to functions
+	addStatus(videos.length+' videos submitted.');
+	addStatus('Retrieving image data.');
 
-	var finishedLoop = false;
-	videos.forEach(function(video, i) {
+	var finishedLoop = false,
+		imagesNum = 0;
+	videos.forEach(function(video, index) {
 		// Check if it's numeric just in case
-		if ($.isNumeric(video)) {
-			if (ratelimit > 2) {
+		if($.isNumeric(video)) {
+			if(ratelimit > 2) {
 				client.request(
 					{
-						path: '/videos/' + video + '/pictures',
+						path: '/videos/'+video+'/pictures',
 					},
 					function(error, body, status_code, headers) {
 						ratelimit = headers['x-ratelimit-remaining'];
-						if (error) {
-							console.log('error');
-							console.log(error);
-						} else {
+						if(error) {
+							addStatus(video+' Error:'+error);
+						} else if(typeof body.data[0].sizes !== 'undefined') {
 							images[video] = [];
 							var image = body.data[0].sizes;
-							if (downloadAll && image.length > 1) {
+							if(downloadAll && image.length > 1) {
 								image.pop();
 								// Last element in array is 720p image
 								images[video] = image;
 							} else {
 								images[video].push(image[image.length - 1]);
 							}
+							imagesNum += images[video].length;
+						} else {
+							addStatus(video+' has no image.');
+						}
+
+						if(videos.length -1 === index) {
+							addStatus(imagesNum+' images found.');
+
+							var zip = new JSZip(),
+								videoProcessed = 0,
+								videoLength = 0;
+
+							for(var i = 0; i < images.length; i++) {
+								if(images[i] !== undefined) {
+									videoLength++;
+								}
+							}
+
+							addStatus('Building the zip.');
+
+							images.forEach(function(image, video) {
+								image.forEach(function(image) {
+									toDataURL(image.link, function(dataURL) {
+										zip.file(
+											video+'_'+image.width+'x'+image.height+'.'+fileExtension(image.link),
+											dataURL,
+											{ base64: true }
+										);
+										videoProcessed++;
+
+										if(videoProcessed === videoLength) {
+											zip.generateAsync({ type: 'blob' }).then(function(content) {
+												FileSaver.saveAs(content, 'thumbs.zip');
+												addStatus('Downloading the zip.');
+												$('.loading').hide();
+											});
+										}
+									});
+								});
+							});
 						}
 					}
 				);
@@ -98,62 +150,9 @@ $('form').submit(e => {
 				videosRemaining.push(video);
 			}
 		}
-
-		// Loop is done
-		if (videos.length - 1 === i) {
-			finishedLoop = true;
-		}
 	});
 
-	var interval;
-	interval = setInterval(function() {
-		if (finishedLoop === true) {
-			clearInterval(interval);
-			finishedLoop = false;
-
-			var zip = new JSZip(),
-				videoProcessed = 0,
-				videoLength = 0;
-
-			for (var i = 0; i < images.length; i++) {
-				if (images[i] !== undefined) {
-					videoLength++;
-				}
-			}
-
-			images.forEach(function(image, video) {
-				videoProcessed++;
-				image.forEach(function(image) {
-					toDataURL(image.link, function(dataURL) {
-						zip.file(
-							video+
-							'_'+
-							image.width+
-							'x'+
-							image.height+
-							'.'+
-							fileExtension(image.link),
-							dataURL,
-							{ base64: true }
-						);
-					});
-				});
-				if (videoProcessed === videoLength) {
-					finishedLoop = true;
-				}
-			});
-
-			interval = setInterval(function() {
-				if (finishedLoop === true) {
-					console.log('zip');
-					clearInterval(interval);
-					zip.generateAsync({ type: 'blob' }).then(function(content) {
-						FileSaver.saveAs(content, 'thumbs.zip');
-					});
-				}
-			}, 1000);
-		}
-	}, 1000);
+	if(videosRemaining.length !== 0) {
+		addStatus('Limit reached. Videos remaining: '+videosRemaining.join(', '));
+	}
 });
-
-// Your jQuery code

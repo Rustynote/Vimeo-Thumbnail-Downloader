@@ -12,9 +12,9 @@
 		<div class="py-5 text-center">
 	        <h2>Extract Thumbnail from Private Vimeo Videos</h2>
 	        <p class="lead">Everything you enter in the form bellow is not saved anywhere.</p>
-			<p>When you enter the data bellow you need to take into consideration <a href="https://developer.vimeo.com/guidelines/rate-limiting">Vimeo Rate Limits</a></p>
+			<p>When you enter the data bellow you need to take <a href="https://developer.vimeo.com/guidelines/rate-limiting">Vimeo Rate Limits</a> into consideration.</p>
       	</div>
-		<div class="mw-800 status-box">
+		<div class="mw-800 pb-5">
 			<form>
 				<div class="fieldset">
 					<div class="legend">Authentication</div>
@@ -34,7 +34,7 @@
 				<div class="fieldset">
 					<div class="legend">Videos</div>
 					<div class="form-group">
-						<textarea class="form-control" rows="4" id="videos" aria-describedby="videosHelp">316069451, 316069314</textarea>
+						<textarea class="form-control" rows="4" id="videos" aria-describedby="videosHelp"></textarea>
 						<small id="videosHelp" class="form-text text-muted">Comma separated list of video IDs, or one video URL per line.</small>
 					</div>
 				</div>
@@ -49,9 +49,21 @@
 					</div>
 				</div>
 				<hr class="mb-4">
-				<button class="btn btn-primary btn-lg btn-block" type="submit">Extract</button>
+				<button class="btn btn-primary btn-lg btn-block" type="submit">Download</button>
 			</form>
+			<div class="status-parent" style="display: none">
+				<div class="fieldset status">
+					<div class="legend">Status</div>
+				</div>
+				<div class="loading">
+					<div class="py-2 text-center">Building...</div>
+					<div class="text-center"><small>We cannot show any spinner because it's not spinning. Don't close the browser,<br /> the app didn't crash. It's retrieving image data and building the archive.</small></div>
+				</div>
+			</div>
 		</div>
 	</div>
+	<footer class="text-center bg-light">
+		Build with 🍺 by <a href="https://wparcanum.com">Rustynote</a> <a href="https://paypal.me/Rustynote" class="btn btn-primary btn-sm">Donate</a>
+	</footer>
 </body>
 </html>
