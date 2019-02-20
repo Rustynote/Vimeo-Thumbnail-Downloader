@@ -46,24 +46,110 @@ function addStatus(status) {
 	div.append(element);
 }
 
-var Vimeo = require('vimeo').Vimeo;
-$('form').submit(e => {
+var Vimeo = require('vimeo').Vimeo,
+	video = 0,
+	videos = [],
+	ratelimit = 25,
+	videosRemaining = [],
+	images = [],
+	imageIndex = 0,
+	client,
+	clientID,
+	clientSecret,
+	accessToken,
+	videosRaw,
+	downloadAll,
+	zip;
+
+function addImage() {
+	if(video < videos.length) {
+        var video_id = videos[video];
+		if(ratelimit > 2) {
+			client.request(
+				{
+					path: '/videos/'+video_id+'/pictures',
+				},
+				function(error, body, status_code, headers) {
+					ratelimit = headers['x-ratelimit-remaining'];
+					if(error) {
+						addStatus(video_id+' Error:'+error);
+					} else if(typeof body.data[0].sizes !== 'undefined') {
+						var vImages = body.data[0].sizes;
+						if(downloadAll && vImages.length > 1) {
+							vImages.pop();
+							// Last element in array is 720p image
+							vImages.forEach(function (image, index) {
+								image.video_id = video_id;
+								images.push(image);
+							});
+						} else {
+							vImages[vImages.length - 1].video_id = video_id;
+							images.push(vImages[vImages.length - 1]);
+						}
+					} else {
+						addStatus(video_id+' has no image.');
+					}
+
+		            ++video;
+		            addImage();
+				}
+			);
+		} else {
+			if(videosRemaining.length !== 0) {
+				addStatus('Limit reached. Videos remaining: '+videosRemaining.join(', '));
+			}
+		}
+    } else {
+		addStatus(images.length+' images found.');
+		addStatus('Adding the images to the zip.');
+
+		zip = new JSZip();
+		zipImages();
+	}
+}
+
+function zipImages() {
+	if(imageIndex < images.length) {
+		var img = images[imageIndex];
+
+		toDataURL(img.link, function(dataURL) {
+			console.log(img.video_id);
+			zip.file(
+				img.video_id+'_'+img.width+'x'+img.height+'.'+fileExtension(img.link),
+				dataURL,
+				{ base64: true }
+			);
+
+			if(imageIndex+1 === images.length) {
+				console.log('done');
+				addStatus('Building the zip.');
+				zip.generateAsync({ type: 'blob' }).then(function(content) {
+					FileSaver.saveAs(content, 'thumbs.zip');
+					addStatus('Downloading the zip.');
+					$('.loading').hide();
+				});
+			}
+
+	        ++imageIndex;
+	        zipImages();
+		});
+	}
+};
+
+$('form').submit(function(e) {
 	e.preventDefault();
 
-	var clientID = $('#clientID').val(),
-		clientSecret = $('#clientSecret').val(),
-		accessToken = $('#accessToken').val(),
-		videosRaw = $('#videos').val(),
-		downloadAll = $('#downloadAll').is(':checked'),
-		videos = [],
-		videosRemaining = [],
-		images = [],
-		client = new Vimeo(clientID, clientSecret, accessToken),
-		ratelimit = 25;
+	clientID = $('#clientID').val();
+	clientSecret = $('#clientSecret').val();
+	accessToken = $('#accessToken').val();
+	videosRaw = $('#videos').val();
+	downloadAll = $('#downloadAll').is(':checked');
+	client = new Vimeo(clientID, clientSecret, accessToken);
 
 	$('form').hide();
 	$('.status-parent').show();
 
+	// Prepare the videos ID
 	if (videosRaw.indexOf(',') !== -1) {
 		videos = videosRaw.split(',');
 		videos = videos.map(Function.prototype.call, String.prototype.trim);
@@ -79,80 +165,5 @@ $('form').submit(e => {
 	addStatus(videos.length+' videos submitted.');
 	addStatus('Retrieving image data.');
 
-	var finishedLoop = false,
-		imagesNum = 0;
-	videos.forEach(function(video, index) {
-		// Check if it's numeric just in case
-		if($.isNumeric(video)) {
-			if(ratelimit > 2) {
-				client.request(
-					{
-						path: '/videos/'+video+'/pictures',
-					},
-					function(error, body, status_code, headers) {
-						ratelimit = headers['x-ratelimit-remaining'];
-						if(error) {
-							addStatus(video+' Error:'+error);
-						} else if(typeof body.data[0].sizes !== 'undefined') {
-							images[video] = [];
-							var image = body.data[0].sizes;
-							if(downloadAll && image.length > 1) {
-								image.pop();
-								// Last element in array is 720p image
-								images[video] = image;
-							} else {
-								images[video].push(image[image.length - 1]);
-							}
-							imagesNum += images[video].length;
-						} else {
-							addStatus(video+' has no image.');
-						}
-
-						if(videos.length -1 === index) {
-							addStatus(imagesNum+' images found.');
-
-							var zip = new JSZip(),
-								videoProcessed = 0,
-								videoLength = 0;
-
-							for(var i = 0; i < images.length; i++) {
-								if(images[i] !== undefined) {
-									videoLength++;
-								}
-							}
-
-							addStatus('Building the zip.');
-
-							images.forEach(function(image, video) {
-								image.forEach(function(image) {
-									toDataURL(image.link, function(dataURL) {
-										zip.file(
-											video+'_'+image.width+'x'+image.height+'.'+fileExtension(image.link),
-											dataURL,
-											{ base64: true }
-										);
-										videoProcessed++;
-
-										if(videoProcessed === videoLength) {
-											zip.generateAsync({ type: 'blob' }).then(function(content) {
-												FileSaver.saveAs(content, 'thumbs.zip');
-												addStatus('Downloading the zip.');
-												$('.loading').hide();
-											});
-										}
-									});
-								});
-							});
-						}
-					}
-				);
-			} else {
-				videosRemaining.push(video);
-			}
-		}
-	});
-
-	if(videosRemaining.length !== 0) {
-		addStatus('Limit reached. Videos remaining: '+videosRemaining.join(', '));
-	}
+	addImage();
 });
