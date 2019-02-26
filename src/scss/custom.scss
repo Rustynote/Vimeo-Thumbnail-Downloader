@@ -106,6 +106,18 @@ footer {
     line-height: 60px;
 	.btn {
 		vertical-align: baseline;
-		margin-left: 3px;
+		margin-left: 6px;
+	}
+	a {
+		color: $white;
+		&:hover {
+			color: $white;
+			text-decoration: none;
+		}
+	}
+	@media (max-width: 370px) {
+		.copyright {
+			display: none;
+		}
 	}
 }
