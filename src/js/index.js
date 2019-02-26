@@ -146,6 +146,10 @@ $('form').submit(function(e) {
 	downloadAll = $('#downloadAll').is(':checked');
 	client = new Vimeo(clientID, clientSecret, accessToken);
 
+	if(!clientID || !clientSecret || !accessToken) {
+		return;
+	}
+
 	$('form').hide();
 	$('.status-parent').show();
 
@@ -156,7 +160,7 @@ $('form').submit(function(e) {
 	} else {
 		videos = videosRaw.split('\n');
 		videos.forEach(function(url, i) {
-			url = url.trim().split('/');
+			url = url.replace(/\/$/, "").trim().split('/');
 
 			videos[i] = url[url.length - 1];
 		});

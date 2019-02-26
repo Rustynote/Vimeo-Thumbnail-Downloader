@@ -8,10 +8,10 @@
 </head>
 <body>
 	<div class="container">
-		<noscript><h3> You must have JavaScript enabled in order to use this order form. <br />Please enable JavaScript and then reload this page in order to continue. </h3></noscript>
+		<noscript><h3> You must have JavaScript enabled in order to use this form. <br />Please enable JavaScript and then reload this page in order to continue.</h3></noscript>
 		<div class="py-5 text-center">
 	        <h2>Extract Thumbnail from Private Vimeo Videos</h2>
-	        <p class="lead">Everything you enter in the form bellow is not saved anywhere.</p>
+	        <p class="lead">Everything you enter in the form bellow is not saved anywhere. Your browser is doing everything so there's no server side included.</p>
 			<p>When you enter the data bellow you need to take <a href="https://developer.vimeo.com/guidelines/rate-limiting">Vimeo Rate Limits</a> into consideration.</p>
       	</div>
 		<div class="mw-800 pb-5">
@@ -20,21 +20,21 @@
 					<div class="legend">Authentication</div>
 					<div class="form-group">
 						<label for="clientID">Client ID</label>
-						<input type="text" class="form-control" id="clientID" placeholder="Client ID" value="">
+						<input type="text" class="form-control" id="clientID" placeholder="Client ID" value="" required>
 					</div>
 					<div class="form-group">
 						<label for="clientSecret">Client Secret</label>
-						<input type="text" class="form-control" id="clientSecret" placeholder="Client Secret" value="">
+						<input type="text" class="form-control" id="clientSecret" placeholder="Client Secret" value="" required>
 					</div>
 					<div class="form-group">
 						<label for="accessToken">Access Token</label>
-						<input type="text" class="form-control" id="accessToken" placeholder="Access Token" value="">
+						<input type="text" class="form-control" id="accessToken" placeholder="Access Token" value="" required>
 					</div>
 				</div>
 				<div class="fieldset">
 					<div class="legend">Videos</div>
 					<div class="form-group">
-						<textarea class="form-control" rows="4" id="videos" aria-describedby="videosHelp"></textarea>
+						<textarea class="form-control" rows="4" id="videos" aria-describedby="videosHelp" required></textarea>
 						<small id="videosHelp" class="form-text text-muted">Comma separated list of video IDs, or one video URL per line.</small>
 					</div>
 				</div>
@@ -62,7 +62,8 @@
 		</div>
 	</div>
 	<footer class="text-center bg-light">
-		Build with 🍺 by <a href="https://wparcanum.com">Rustynote</a> <a href="https://paypal.me/Rustynote" class="btn btn-primary btn-sm">Donate</a>
+		<a href="https://wparcanum.com">Build with 🍺 by Rustynote<span class="copyright"> - Copyright &nbsp;<script>document.write(new Date().getFullYear())</script></span></a>
+		<a href="https://paypal.me/Rustynote" class="btn btn-primary btn-sm">Donate</a>
 	</footer>
 </body>
 </html>
