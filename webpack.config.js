@@ -88,7 +88,7 @@ const config = {
     ]),
     new HtmlWebPackPlugin({
       template: path.resolve(__dirname, './src/index.html'),
-      favicon: path.resolve(__dirname, './src/public/icon.ico'),
+      // favicon: path.resolve(__dirname, './src/public/icon.ico'),
       minify: !IS_DEV && {
         collapseWhitespace: true,
         preserveLineBreaks: true,
