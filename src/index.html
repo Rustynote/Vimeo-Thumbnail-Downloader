@@ -6,6 +6,16 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Extract Thumbnail from Private Vimeo Videos</title>
 	<meta name="description" content="Download thumbnails from private vimeo videos "/>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-8223380-30"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-8223380-30');
+	</script>
+
 </head>
 <body>
 	<div class="container">
@@ -51,7 +61,7 @@
 					</div>
 				</div>
 				<hr class="mb-4">
-				<button class="btn btn-primary btn-lg btn-block" type="submit">Download</button>
+				<button class="btn btn-primary btn-lg btn-block" type="submit" onclick="ga('send', 'event', 'Buttons', 'click', 'Download');">Download</button>
 			</form>
 			<div class="status-parent" style="display: none">
 				<div class="fieldset status">
