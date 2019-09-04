@@ -113,7 +113,6 @@ function zipImages() {
 		var img = images[imageIndex];
 
 		toDataURL(img.link, function(dataURL) {
-			console.log(img.video_id);
 			zip.file(
 				img.video_id+'_'+img.width+'x'+img.height+'.'+fileExtension(img.link),
 				dataURL,
@@ -121,7 +120,6 @@ function zipImages() {
 			);
 
 			if(imageIndex+1 === images.length) {
-				console.log('done');
 				addStatus('Building the zip.');
 				zip.generateAsync({ type: 'blob' }).then(function(content) {
 					FileSaver.saveAs(content, 'thumbs.zip');
@@ -168,6 +166,10 @@ $('form').submit(function(e) {
 
 	addStatus(videos.length+' videos submitted.');
 	addStatus('Retrieving image data.');
+
+	if(ga && typeof ga !== "undefined") {
+		ga('send', 'event', 'Buttons', 'click', 'Download');
+	}
 
 	addImage();
 });
